@@ -7,7 +7,7 @@ all : $(exe)
 search-x86: search-bench.c ../libgpl/libgpl/libgpl.a
 	gcc -O3 -Wall -Werror -I ../libgpl/include/ -L../libgpl/libgpl  search-bench.c -o search-x86 -lgpl
 
-search-k1: search-bench.c ../libgpl/libgpl/libgpl.a
+search-k1: search-bench.c ../libgpl/libgpl/libgpl.a kmemcmp/kmemcmp.h
 	k1-gcc -g -O3 -Wall -Werror -march=k1b -I ../libgpl/include/ -D MPPA search-bench.c -o search-k1
 
 PARAMS:=600 16384 32768 65536

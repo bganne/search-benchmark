@@ -23,24 +23,7 @@ int dcache;
 #include <HAL/hal/hal.h>
 #include <HAL/hal/cluster/dsu.h>
 #include <inttypes.h>
-
-static inline
-int jsmemcmp(void * s1, void * s2, unsigned n)
-{
-  uint64_t u1 = *(const uint64_t*)s1;
-  uint64_t u2 = *(const uint64_t*)s2;
-  const uint64_t * p1 = (const uint64_t*)((const char*)s1 + (n & 7));
-  const uint64_t * p2 = (const uint64_t*)((const char*)s2 + (n & 7));
-  n = n >> 3;
-  while (n > 0 && u1 == u2) {
-    u1 = *(p1 ++);
-    u2 = *(p2 ++);
-    n --;
-  }
-  u1 = __builtin_bswap64(u1);
-  u2 = __builtin_bswap64(u2);
-  return (u1 > u2) - (u1 < u2);
-}
+#include "kmemcmp/kmemcmp.h"
 
 #define CYCLES cycles
 typedef struct {
@@ -220,17 +203,14 @@ search(char *buf,  int size, char *key, int key_sz)
     if (tuple->key_sz < cmpsz) {
       cmpsz = tuple->key_sz;
     }
-    #ifdef MPPA
-    if (jsmemcmp(tuple->key, key, cmpsz) == 0) {
-      found = 1;
-      break;
-    }
-    #else
+#ifdef MPPA
+#define memcmp kmemcmp
+#endif
     if (memcmp(tuple->key, key, cmpsz) == 0) {
       found = 1;
       break;
     }
-    #endif
+#undef memcmp
     curr = tuple->key;
     curr = curr + tuple->key_sz + tuple->val_sz;
     tuple = (region_t *)curr;
